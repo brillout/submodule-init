@@ -1,0 +1,20 @@
+{
+  "name": "@brillout/submodule-init",
+  "version": "0.1.1",
+  "bin": {
+    "submodule-init": "cli.js"
+  },
+  "scripts": {
+    "dev": "npm run clean && tsc --watch",
+    "build": "npm run clean && tsc",
+    "clean": "rm -rf dist/"
+  },
+  "repository": "https://github.com/brillout/submodule-fix",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.35",
+    "typescript": "^4.5.2"
+  }
+}
