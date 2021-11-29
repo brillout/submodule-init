@@ -1,11 +1,12 @@
 {
   "name": "@brillout/submodule-init",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "bin": {
     "submodule-init": "cli.js"
   },
   "scripts": {
     "dev": "npm run clean && tsc --watch",
+    "prepublishOnly": "npm run build",
     "build": "npm run clean && tsc",
     "clean": "rm -rf dist/"
   },

@@ -6,19 +6,34 @@ import { projectName } from "./utils/projectName";
 
 export { applySubmoduleFix };
 
-const debug = false;
+let debug = false;
 
 async function applySubmoduleFix() {
   if (isWindows()) {
     return;
   }
-  const submodulePathRelative = getArg();
-  const submodulePath = resolve(process.cwd(), submodulePathRelative);
-  await setGitHead(submodulePath);
-  await useSSHRemoteURL(submodulePath);
+
+  const { submodulePath, submodulePathRelative } = getSubmodulePath();
+
+  let isAlreadyInitialized;
+  try {
+    isAlreadyInitialized = await apply(submodulePath);
+  } catch (err) {
+    debug = true;
+    await apply(submodulePath);
+    return;
+  }
+
+  const already = !isAlreadyInitialized ? "" : "already ";
   console.log(
-    `[${projectName}] submodule ${submodulePathRelative} initialized`
+    `[${projectName}] submodule ${submodulePathRelative} ${already}initialized`
   );
+}
+
+async function apply(submodulePath: string): Promise<boolean> {
+  const isAlreadyInitialized = await useSSHRemoteURL(submodulePath);
+  await setGitHead(submodulePath);
+  return isAlreadyInitialized;
 }
 
 async function setGitHead(submodulePath: string) {
@@ -31,7 +46,7 @@ async function setGitHead(submodulePath: string) {
   await execCmd(`git reset --hard ${revisionHash}`, { cwd, log: debug });
 }
 
-async function useSSHRemoteURL(submodulePath: string) {
+async function useSSHRemoteURL(submodulePath: string): Promise<boolean> {
   const before = "https://github.com/";
   const after = "git@github.com:";
   const gitConfigPath = getGitConfigPath(submodulePath);
@@ -39,8 +54,12 @@ async function useSSHRemoteURL(submodulePath: string) {
     console.log(`[${projectName}] Git remote URLs updated (${gitConfigPath})`);
   }
   let gitConfigContent = readFileSync(gitConfigPath).toString();
+  if (!gitConfigContent.includes(before)) {
+    return true;
+  }
   gitConfigContent = gitConfigContent.split(before).join(after);
   writeFileSync(gitConfigPath, gitConfigContent, "utf8");
+  return false;
 }
 
 function getGitConfigPath(submodulePath: string): string {
@@ -56,6 +75,12 @@ function getGitConfigPath(submodulePath: string): string {
 
 function isWindows() {
   return process.platform === "win32";
+}
+
+function getSubmodulePath() {
+  const submodulePathRelative = getArg();
+  const submodulePath = resolve(process.cwd(), submodulePathRelative);
+  return { submodulePath, submodulePathRelative };
 }
 
 function getArg(): string {
