@@ -1,0 +1,14 @@
+~/code/vite-plugin-ssr (wip u=) ls .git/hooks/
+post-checkout  post-merge  post-rewrite
+
+~/code/vite-plugin-ssr (wip u=) cat .git/hooks/post-merge
+#!/bin/sh
+# https://stackoverflow.com/questions/21307744/git-post-rebase-hook
+echo submodule-fix_post-merge
+git submodule update --init --recursive
+(cd libframe/ && git checkout HEAD -B master > /dev/null 2>&1)
+
+
+~/code/vite-plugin-ssr (wip u=) cat .git/config
+[submodule]
+        recurse = true
